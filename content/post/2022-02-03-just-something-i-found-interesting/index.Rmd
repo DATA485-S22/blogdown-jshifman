@@ -1,0 +1,14 @@
+---
+title: Just something I found interesting...
+author: Joseph Shifman
+date: '2022-02-03'
+slug: just-something-i-found-interesting
+categories: []
+tags: []
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(collapse = TRUE)
+```
+
+# 
