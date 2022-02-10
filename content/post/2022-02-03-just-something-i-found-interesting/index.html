@@ -17,4 +17,26 @@ tags: ["AI", "cancer", "deep learning"]
 <p>The use of artificial intelligence and deep learning (neural-networks) in the medical healthcare field has increased at an astonishing rate. AI continues to have a significant impact on medical imaging and deep learning models are constantly being developed to look for anomalies such as bone fractures or possible cancer. Breast cancer is responsible for about 30% of all new female cancers per year (<a href="https://www.cancer.org/cancer/breast-cancer/about/how-common-is-breast-cancer.html">cancer.com</a>), but the introduction of the breast cancer screening (in the form of mammograms or palpation) has helped to reduce mortality rates. Many have developed AI to detect and segment cancers within a mammogram, yet fewer have developed image-based deep learning models to predict risk. In the work being described, a model was developed to predict an individual’s breast cancer risk; more specifically, interval and screen-detected cancer risk.</p>
 <p>There are three clinically relevant outcomes when evaluating risk within a screening population. These outcomes include screen-detected, interval, or no cancer risk. A screen-detected cancer is a cancer that is found as a result of a routine screening mammogram. In this study, it was further defined it as a cancer that occurred within 12 months after a positive screening mammogram. An interval cancer is a cancer that is found between the normal screening interval (biannual or annual) and was defined in the study as an invasive cancer that occurred within 12 months after a negative screening mammogram. Interval cancers are known to grow more rapidly and be more aggressive in biology.</p>
 </div>
+<div id="historically" class="section level2">
+<h2>Historically</h2>
+<p>There are many breast cancer risk models that are established and used clinically (Gail, BRCAPRO, Tyrer-Cuzick, Breast Cancer Surveillance Consortium). They all use varying combinations of known risk factors (age, BMI, breast density, etc.) but imaging does not get directly used in these models other than to get an accurate breast density measurement. A few image-based AI models have been published that demonstrate comparable risk analysis, but these were constrained to a binary classification. Incorporating the separation of screen-detected and interval cases can yield better results.</p>
+</div>
+<div id="modeling-process" class="section level2">
+<h2>Modeling process</h2>
+<p>The dataset consisted of 6,369 women recruited from the Mayo Clinic and the University of California at San Francisco. Four standard mammographic views which include the craniocaudal (top-down) and mediolateral oblique (side) views for both the left and right breast were acquired on each woman. The images used for risk modeling were acquired at least six months prior to cancer diagnosis. Thus the images we use for modeling were negative and contained no visible cancers as determined by expert radiologists.</p>
+<p>Model development took place at the University of Hawaii Cancer Center. The data was split into a train and hold-out test set and the test set was never sent to the University of Hawaii. The data was further split (from the training data) into a train, validate, and test set for initial model development. Below is a diagram of the model with individual networks for each of the four images.</p>
+<div class="figure">
+<img src="/imgs/dense_net.jpg" alt="" />
+<p class="caption">Diagram of risk prediction model (image taken from article)</p>
+</div>
+<p>The deep learning model resulted from four parallel networks looking at each image simultaneously. Outputs from all networks were pooled and used to make final predictions of risk.</p>
+</div>
+<div id="results" class="section level2">
+<h2>Results</h2>
+<p>Risk predictions were evaluated using area under the reciever operating characteristic curve (AUC). The AUC is the measure of the ability of a classifier to distinguish between classes and is used as a summary of the ROC curve. The higher the AUC, the better the performance of the model at distinguishing between the classes. The model performed with an AUC of 0.66 when classifying controls vs. everything else, 0.63 when classifying screen-detected cancer vs. everything else, and 0.71 when classifying interval cancer vs. everything else. Risk modeling is difficult, and these results are on par, if not better, than current clinical risk models.</p>
+<div class="figure">
+<img src="/imgs/AUC.png" alt="" />
+<p class="caption">Final model performance on hold-out test set (image taken from article)</p>
+</div>
+</div>
 </div>
