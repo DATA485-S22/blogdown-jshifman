@@ -7,3 +7,92 @@ categories: []
 tags: []
 ---
 
+```{r, include = FALSE}
+# Spell Check
+spelling::spell_check_files("index.Rmd")
+```
+
+
+### To walk through the Tidymodels official tutorial, click [here](https://www.tidymodels.org/start/).
+
+Before we begin, it is important to give an overview of the Tidymodels package. To install Tidymodels, all we have to do is run `install.packages("tidymodels")` and load the packages into the current session with `library(tidymodels)`. However, Tidymodels is actually a group of packages that work together to enable a wide variety of modeling approaches. It also includes some of the main core packages from the `tidyverse`.
+
+**Here is a list of the core Tidymodels packages with short descriptions. Use `?<package_name>` for more information.**
+
+- `tidymodels` -> the meta-package that installs and loads the core packages listed below
+- `rsample` -> provides infrastructure for data splitting and resampling
+- `parsnip` -> a tidy, unified interface to create models
+- `recipes` -> a tidy interface for data preprocessing tools
+- `workflows` -> used to bundle preprocessing, modeling, and post-processing together
+- `tune` -> helps optimize the hyperparameters of the models and preprocessing steps
+- `yardstick` -> measures the effectiveness of models using performance metrics
+- `broom` -> converts the information in common statistical R objects into user-friendly formats
+- `dials` -> creates and manages tuning parameters and parameter grids
+
+This tutorial will be focused on creating a simple linear regression model, so not all these packages will be used. First, we will load the packages into our R session:
+```{r, message=FALSE}
+library(tidymodels)
+library(MASS) # Contains data
+```
+
+Next, we start by creating a parsnip specification for a linear regression model:
+```{r}
+lm_spec <- linear_reg() %>%
+  set_engine("lm")
+```
+
+The [documentation](https://tidymodels.github.io/parsnip/reference/linear_reg.html) page for `linear_reg()` lists the possible engines and the `parsnip` [reference](https://parsnip.tidymodels.org/reference/index.html) page lists the possible models and extra functions.
+
+The Boston data set contain various statistics for 506 neighborhoods in Boston. We will build a simple linear regression model that relates the median value of owner-occupied homes (`medv`) as the response with a variable indicating the percentage of the population that belongs to a lower status (`lstat`) as the predictor.
+
+Once we have specified the model, we can use the `fit()` function by supplying a formula. The formula is in the form `y ~ x` where x can be a set of predictors and y is the response variable.
+
+```{r}
+lm_fit <- lm_spec %>%
+  fit(medv ~ lstat, data = Boston)
+```
+
+`lm_fit` is a parsnip model object that contains the underlying fit and some parsnip-specific information. To get the underlying fit, use `lm_fit$fit` or:
+
+```{r}
+lm_fit %>% 
+  pluck("fit") # From the purrr package
+```
+
+We can also pass this on to `summary()` to see parameter estimates and p-values.
+
+```{r}
+lm_fit %>% 
+  pluck("fit") %>%
+  summary()
+```
+
+We can use the `broom` [package](https://broom.tidymodels.org/) to extract key information out of the model objects in tidy formats. The `tidy()` function returns parameter estimates of our linear model object, and `glance()` can be used to extract model statistics.
+
+```{r}
+tidy(lm_fit)
+glance(lm_fit)
+```
+
+To use the model to generate predictions, we typically use the `predict()` function.
+
+```{r}
+predict(lm_fit, new_data = Boston)
+```
+
+Notice how the predictions are returned as a tibble. This will always be the case for parsnip models, no matter what engine is used. This is very useful since consistency allows us to combine data sets easily.
+
+By using the `type` argument of predict, we can specify a different prediction. In this example, `type = "conf_int"` returns a 95% confidence interval.
+
+```{r}
+predict(lm_fit, new_data = Boston, type = "conf_int")
+```
+
+We can use the `augment()` function to add predictions to our original data set to evaluate performance.
+
+```{r}
+augment(lm_fit, new_data = Boston) %>%
+  dplyr::select(medv, .pred)
+```
+
+From here we can measure error and residuals and evaluate the strength of our model. Obviously, best practice is to separate the data into a training and testing set to properly evaluate a model. For the purpose of this tutorial, I used the full data set to simplify the steps. Many of these steps can be combined together using the `recipes` and `workflows` packages, you can learn more about them [here](https://www.tidymodels.org/start/recipes/).

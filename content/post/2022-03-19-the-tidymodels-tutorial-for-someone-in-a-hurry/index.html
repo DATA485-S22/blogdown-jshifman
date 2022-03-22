@@ -7,6 +7,128 @@ categories: []
 tags: []
 ---
 
-<script src="{{< blogdown/postref >}}index_files/header-attrs/header-attrs.js"></script>
 
 
+<div id="to-walk-through-the-tidymodels-official-tutorial-click-here." class="section level3">
+<h3>To walk through the Tidymodels official tutorial, click <a href="https://www.tidymodels.org/start/">here</a>.</h3>
+<p>Before we begin, it is important to give an overview of the Tidymodels package. To install Tidymodels, all we have to do is run <code>install.packages("tidymodels")</code> and load the packages into the current session with <code>library(tidymodels)</code>. However, Tidymodels is actually a group of packages that work together to enable a wide variety of modeling approaches. It also includes some of the main core packages from the <code>tidyverse</code>.</p>
+<p><strong>Here is a list of the core Tidymodels packages with short descriptions. Use <code>?&lt;package_name&gt;</code> for more information.</strong></p>
+<ul>
+<li><code>tidymodels</code> -&gt; the meta-package that installs and loads the core packages listed below</li>
+<li><code>rsample</code> -&gt; provides infrastructure for data splitting and resampling</li>
+<li><code>parsnip</code> -&gt; a tidy, unified interface to create models</li>
+<li><code>recipes</code> -&gt; a tidy interface for data preprocessing tools</li>
+<li><code>workflows</code> -&gt; used to bundle preprocessing, modeling, and post-processing together</li>
+<li><code>tune</code> -&gt; helps optimize the hyperparameters of the models and preprocessing steps</li>
+<li><code>yardstick</code> -&gt; measures the effectiveness of models using performance metrics</li>
+<li><code>broom</code> -&gt; converts the information in common statistical R objects into user-friendly formats</li>
+<li><code>dials</code> -&gt; creates and manages tuning parameters and parameter grids</li>
+</ul>
+<p>This tutorial will be focused on creating a simple linear regression model, so not all these packages will be used. First, we will load the packages into our R session:</p>
+<pre class="r"><code>library(tidymodels)
+library(MASS) # Contains data</code></pre>
+<p>Next, we start by creating a parsnip specification for a linear regression model:</p>
+<pre class="r"><code>lm_spec &lt;- linear_reg() %&gt;%
+  set_engine(&quot;lm&quot;)</code></pre>
+<p>The <a href="https://tidymodels.github.io/parsnip/reference/linear_reg.html">documentation</a> page for <code>linear_reg()</code> lists the possible engines and the <code>parsnip</code> <a href="https://parsnip.tidymodels.org/reference/index.html">reference</a> page lists the possible models and extra functions.</p>
+<p>The Boston data set contain various statistics for 506 neighborhoods in Boston. We will build a simple linear regression model that relates the median value of owner-occupied homes (<code>medv</code>) as the response with a variable indicating the percentage of the population that belongs to a lower status (<code>lstat</code>) as the predictor.</p>
+<p>Once we have specified the model, we can use the <code>fit()</code> function by supplying a formula. The formula is in the form <code>y ~ x</code> where x can be a set of predictors and y is the response variable.</p>
+<pre class="r"><code>lm_fit &lt;- lm_spec %&gt;%
+  fit(medv ~ lstat, data = Boston)</code></pre>
+<p><code>lm_fit</code> is a parsnip model object that contains the underlying fit and some parsnip-specific information. To get the underlying fit, use <code>lm_fit$fit</code> or:</p>
+<pre class="r"><code>lm_fit %&gt;% 
+  pluck(&quot;fit&quot;) # From the purrr package</code></pre>
+<pre><code>## 
+## Call:
+## stats::lm(formula = medv ~ lstat, data = data)
+## 
+## Coefficients:
+## (Intercept)        lstat  
+##       34.55        -0.95</code></pre>
+<p>We can also pass this on to <code>summary()</code> to see parameter estimates and p-values.</p>
+<pre class="r"><code>lm_fit %&gt;% 
+  pluck(&quot;fit&quot;) %&gt;%
+  summary()</code></pre>
+<pre><code>## 
+## Call:
+## stats::lm(formula = medv ~ lstat, data = data)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -15.168  -3.990  -1.318   2.034  24.500 
+## 
+## Coefficients:
+##             Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept) 34.55384    0.56263   61.41   &lt;2e-16 ***
+## lstat       -0.95005    0.03873  -24.53   &lt;2e-16 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 6.216 on 504 degrees of freedom
+## Multiple R-squared:  0.5441, Adjusted R-squared:  0.5432 
+## F-statistic: 601.6 on 1 and 504 DF,  p-value: &lt; 2.2e-16</code></pre>
+<p>We can use the <code>broom</code> <a href="https://broom.tidymodels.org/">package</a> to extract key information out of the model objects in tidy formats. The <code>tidy()</code> function returns parameter estimates of our linear model object, and <code>glance()</code> can be used to extract model statistics.</p>
+<pre class="r"><code>tidy(lm_fit)</code></pre>
+<pre><code>## # A tibble: 2 x 5
+##   term        estimate std.error statistic   p.value
+##   &lt;chr&gt;          &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;
+## 1 (Intercept)   34.6      0.563       61.4 3.74e-236
+## 2 lstat         -0.950    0.0387     -24.5 5.08e- 88</code></pre>
+<pre class="r"><code>glance(lm_fit)</code></pre>
+<pre><code>## # A tibble: 1 x 12
+##   r.squared adj.r.squared sigma statistic  p.value    df logLik   AIC   BIC
+##       &lt;dbl&gt;         &lt;dbl&gt; &lt;dbl&gt;     &lt;dbl&gt;    &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
+## 1     0.544         0.543  6.22      602. 5.08e-88     1 -1641. 3289. 3302.
+## # ... with 3 more variables: deviance &lt;dbl&gt;, df.residual &lt;int&gt;, nobs &lt;int&gt;</code></pre>
+<p>To use the model to generate predictions, we typically use the <code>predict()</code> function.</p>
+<pre class="r"><code>predict(lm_fit, new_data = Boston)</code></pre>
+<pre><code>## # A tibble: 506 x 1
+##    .pred
+##    &lt;dbl&gt;
+##  1 29.8 
+##  2 25.9 
+##  3 30.7 
+##  4 31.8 
+##  5 29.5 
+##  6 29.6 
+##  7 22.7 
+##  8 16.4 
+##  9  6.12
+## 10 18.3 
+## # ... with 496 more rows</code></pre>
+<p>Notice how the predictions are returned as a tibble. This will always be the case for parsnip models, no matter what engine is used. This is very useful since consistency allows us to combine data sets easily.</p>
+<p>By using the <code>type</code> argument of predict, we can specify a different prediction. In this example, <code>type = "conf_int"</code> returns a 95% confidence interval.</p>
+<pre class="r"><code>predict(lm_fit, new_data = Boston, type = &quot;conf_int&quot;)</code></pre>
+<pre><code>## # A tibble: 506 x 2
+##    .pred_lower .pred_upper
+##          &lt;dbl&gt;       &lt;dbl&gt;
+##  1       29.0        30.6 
+##  2       25.3        26.5 
+##  3       29.9        31.6 
+##  4       30.8        32.7 
+##  5       28.7        30.3 
+##  6       28.8        30.4 
+##  7       22.2        23.3 
+##  8       15.6        17.1 
+##  9        4.70        7.54
+## 10       17.7        18.9 
+## # ... with 496 more rows</code></pre>
+<p>We can use the <code>augment()</code> function to add predictions to our original data set to evaluate performance.</p>
+<pre class="r"><code>augment(lm_fit, new_data = Boston) %&gt;%
+  dplyr::select(medv, .pred)</code></pre>
+<pre><code>## # A tibble: 506 x 2
+##     medv .pred
+##    &lt;dbl&gt; &lt;dbl&gt;
+##  1  24   29.8 
+##  2  21.6 25.9 
+##  3  34.7 30.7 
+##  4  33.4 31.8 
+##  5  36.2 29.5 
+##  6  28.7 29.6 
+##  7  22.9 22.7 
+##  8  27.1 16.4 
+##  9  16.5  6.12
+## 10  18.9 18.3 
+## # ... with 496 more rows</code></pre>
+<p>From here we can measure error and residuals and evaluate the strength of our model. Obviously, best practice is to separate the data into a training and testing set to properly evaluate a model. For the purpose of this tutorial, I used the full data set to simplify the steps. Many of these steps can be combined together using the <code>recipes</code> and <code>workflows</code> packages, you can learn more about them <a href="https://www.tidymodels.org/start/recipes/">here</a>.</p>
+</div>
